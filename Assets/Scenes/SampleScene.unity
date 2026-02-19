@@ -753,7 +753,7 @@ MonoBehaviour:
   _jumpForce: 20
   _dashKey: 304
   _dashForce: 25
-  _dashDuration: 0.2
+  _dashDuration: 0.25
   _grabLayer:
     serializedVersion: 2
     m_Bits: 72
