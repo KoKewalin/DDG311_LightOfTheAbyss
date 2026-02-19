@@ -4,6 +4,7 @@ using UnityEngine;
 
 public interface IJumpAbility
 {
-    void DoubleJump(Rigidbody2D rb, float jumpForce, bool isGrounded);
+    bool CanJump(bool isGrounded);
+    void PerformJump(Rigidbody2D rb, float jumpForce, bool isGrounded);
     void OnLand();
 }

@@ -758,12 +758,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 72
   _grabKey: 101
-  _grabCheckDistance: 1
+  _grabCheckDistance: 0.7
   _groundCheck: {fileID: 999561490}
   _groundCheckRadius: 0.2
   _groundLayer:
     serializedVersion: 2
     m_Bits: 8
+  _comboBufferTime: 1
 --- !u!50 &1923379248
 Rigidbody2D:
   serializedVersion: 4

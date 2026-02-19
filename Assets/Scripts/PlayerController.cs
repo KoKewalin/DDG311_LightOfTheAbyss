@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,9 +24,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _groundCheckRadius = .2f;
     [SerializeField] private LayerMask _groundLayer;
 
+    [Header("Combo")]
+    [SerializeField] private float _comboBufferTime = 1f;
+
     private Rigidbody2D rb;
     private IJumpAbility doubleJump;
+    private ComboSystem comboSystem;
+    private Vector2 lastMovementInput;
 
+    private bool wasGrounded;
     private bool isGrounded;
     private bool isDashing;
     private bool hitPressed;
@@ -38,6 +44,8 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+        comboSystem = new ComboSystem();
+        comboSystem.SetBufferTime(_comboBufferTime);
         rb = GetComponent<Rigidbody2D>();
         doubleJump = new DoubleJumpAbility();
         originalGravity = rb.gravityScale;
@@ -46,27 +54,52 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        wasGrounded = isGrounded;
+
+        isGrounded = Physics2D.OverlapCircle(
+            _groundCheck.position,
+            _groundCheckRadius,
+            _groundLayer
+        );
+
+        if (!wasGrounded && isGrounded)
+        {
+            doubleJump.OnLand();
+        }
+
+        CaptureMoveDir();
         Move();
         HandleDash();
         HandleHit();
         HandleGrab();
+        CheckCombos();
+        Debug.Log("Buffer: " + comboSystem.GetBufferDebug());
+    }
+
+    private void CaptureMoveDir()
+    {
+        lastMovementInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
+
+        comboSystem.UpdateTimer();
     }
     private void Move()
     {
         if (isDashing || isGrabbing) return;
 
         moveInput = Input.GetAxisRaw("Horizontal");
-        isGrounded = Physics2D.OverlapCircle(_groundCheck.position, _groundCheckRadius, _groundLayer);
+        //isGrounded = Physics2D.OverlapCircle(_groundCheck.position, _groundCheckRadius, _groundLayer);
         rb.velocity = new Vector2(moveInput * _moveSpeed, rb.velocity.y);
-
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            Jump();
-        }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            doubleJump.DoubleJump(rb, _jumpForce, isGrounded);
+            Debug.Log("SPACE PRESSED");
+
+            if (doubleJump.CanJump(isGrounded))
+            {
+                doubleJump.PerformJump(rb, _jumpForce, isGrounded);
+            }
+
+            comboSystem.AddInput(ComboInput.Jump);
         }
     }
     private void Jump()
@@ -77,28 +110,39 @@ public class PlayerController : MonoBehaviour
     private void HandleDash()
     {
         if (Input.GetKeyDown(_dashKey) && !isDashing)
-            StartDash();
+        {
+            StartDash();                    // Immediate execution
+            comboSystem.AddInput(ComboInput.Dash);  // Still record for combos
+        }
 
         if (isDashing)
         {
             dashTimer -= Time.deltaTime;
 
             if (dashTimer <= 0)
+            {
                 isDashing = false;
-            rb.gravityScale = originalGravity;
+                rb.gravityScale = originalGravity;
+            }
         }
     }
     private void HandleHit()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0)) // or KeyCode.F
+        if (Input.GetMouseButtonDown(0))
         {
-            hitPressed = true;
-            Debug.Log("Hit triggered");
+            comboSystem.AddInput(ComboInput.Hit);
+            Debug.Log("Hit!");
         }
-        else
-        {
-            hitPressed = false;
-        }
+
+        //if (Input.GetKeyDown(KeyCode.Mouse0)) // or KeyCode.F
+        //{
+        //    hitPressed = true;
+        //    Debug.Log("Hit triggered");
+        //}
+        //else
+        //{
+        //    hitPressed = false;
+        //}
     }
     private void StartDash()
     {
@@ -126,27 +170,36 @@ public class PlayerController : MonoBehaviour
 
     private void HandleGrab()
     {
-        if (Input.GetKey(_grabKey))
+        if (!Input.GetKey(_grabKey))
         {
-            Vector2 dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-
-            RaycastHit2D hit = Physics2D.Raycast(
-                transform.position,
-                dir,
-                _grabCheckDistance,
-                _grabLayer
-            );
-
-            Debug.DrawRay(transform.position, dir * _grabCheckDistance, Color.red);
-
-            if (hit.collider != null)
-            {
-                StartGrab();
-                return;
-            }
+            StopGrab();
+            return;
         }
 
-        StopGrab();
+        if (Input.GetKeyDown(_grabKey))
+        {
+            comboSystem.AddInput(ComboInput.Grab);
+        }
+
+        Vector2 dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+
+        RaycastHit2D hit = Physics2D.Raycast(
+            transform.position,
+            dir,
+            _grabCheckDistance,
+            _grabLayer
+        );
+
+        Debug.DrawRay(transform.position, dir * _grabCheckDistance, Color.red);
+
+        if (hit.collider != null)
+        {
+            StartGrab();
+        }
+        else
+        {
+            StopGrab();
+        }
     }
     private void StartGrab()
     {
@@ -163,6 +216,24 @@ public class PlayerController : MonoBehaviour
 
         isGrabbing = false;
         rb.gravityScale = originalGravity;
+    }
+
+    private void CheckCombos()
+    {
+
+        // Dash → Hit
+        if (comboSystem.Match(ComboInput.Dash, ComboInput.Hit))
+        {
+            rb.velocity = new Vector2(0, _dashForce);
+            return;
+        }
+
+        // Grab alone
+        //if (comboSystem.Match(ComboInput.Grab))
+        //{
+        //    HandleGrab();
+        //    return;
+        //}
     }
 
     private void OnDrawGizmos()
