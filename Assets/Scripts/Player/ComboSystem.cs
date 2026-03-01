@@ -70,4 +70,30 @@ public class ComboSystem
     {
         return inputs.Count;
     }
+    public bool Contains(ComboInput input)
+    {
+        return inputs.Contains(input);
+    }
+    public bool MatchIgnoring(ComboInput ignore, params ComboInput[] sequence)
+    {
+        // Build a filtered list (ignore Movement etc)
+        List<ComboInput> filtered = new List<ComboInput>();
+        for (int i = 0; i < inputs.Count; i++)
+        {
+            if (inputs[i] != ignore)
+                filtered.Add(inputs[i]);
+        }
+
+        if (filtered.Count < sequence.Length)
+            return false;
+
+        // compare last N
+        for (int i = 0; i < sequence.Length; i++)
+        {
+            if (filtered[filtered.Count - sequence.Length + i] != sequence[i])
+                return false;
+        }
+
+        return true;
+    }
 }

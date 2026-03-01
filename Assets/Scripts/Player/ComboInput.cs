@@ -7,5 +7,6 @@ public enum ComboInput
     Jump,
     Dash,
     Hit,
-    Grab
+    Grab,
+    Movement
 }

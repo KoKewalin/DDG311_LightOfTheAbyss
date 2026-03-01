@@ -9,17 +9,16 @@ public class DoubleJumpAbility : IJumpAbility
 
     public bool CanJump(bool isGrounded)
     {
-        if (isGrounded)
-            return true;
+        // If grounded, you can always jump (count will be reset on land anyway)
+        if (isGrounded) return true;
 
-        return jumpCount < maxJumps - 1;
+        // In air, allow until you reach max jumps
+        return jumpCount < maxJumps;
     }
 
     public void PerformJump(Rigidbody2D rb, float jumpForce, bool isGrounded)
     {
-        if (isGrounded)
-            jumpCount = 0;
-
+        // Do NOT reset here every time — reset happens on OnLand()
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         jumpCount++;
     }
