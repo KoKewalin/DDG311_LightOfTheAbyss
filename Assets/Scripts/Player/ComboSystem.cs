@@ -96,4 +96,14 @@ public class ComboSystem
 
         return true;
     }
+    public float GetTimer()
+    {
+        return timer;
+    }
+
+    public bool HasInputs()
+    {
+        return inputs.Count > 0;
+    }
+
 }

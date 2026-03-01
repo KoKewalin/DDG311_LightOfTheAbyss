@@ -35,6 +35,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private IJumpAbility doubleJump;
     private ComboSystem comboSystem;
+    private ComboInput _lastInput;
     private Vector2 lastMovementInput;
     private Vector2 comboMovementDirection;
     private Vector2 grabAimDirection;
@@ -385,6 +386,27 @@ public class PlayerController : MonoBehaviour
             dir = Vector2.up;
 
         rb.velocity = dir.normalized * _launchForce;
+    }
+
+    public string Debug_GetBufferString()
+    {
+        return comboSystem != null ? comboSystem.GetBufferDebug() : "null";
+    }
+
+    public string Debug_GetLastInputString()
+    {
+        return _lastInput.ToString();
+    }
+
+    public float Debug_GetBufferSecondsLeft()
+    {
+        if (comboSystem == null) return 0f;
+        return comboSystem.HasInputs() ? comboSystem.GetTimer() : 0f;
+    }
+
+    public float Debug_GetCoyoteSecondsLeft()
+    {
+        return Mathf.Max(0f, _coyoteTimer);
     }
 
     private void OnDrawGizmos()
