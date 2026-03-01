@@ -7,6 +7,8 @@ public class PlayerController : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float _moveSpeed = 8f;
     [SerializeField] private float _jumpForce = 10f;
+    [SerializeField] private float _coyoteTime = 0.12f;
+
 
     [Header("Dash")]
     [SerializeField] private KeyCode _dashKey = KeyCode.LeftShift;
@@ -27,6 +29,7 @@ public class PlayerController : MonoBehaviour
     [Header("Combo")]
     [SerializeField] private float _comboBufferTime = 1f;
     [SerializeField] private float _launchForce = 18f;
+    [SerializeField] private float _grabLockDuration = 0.15f;
 
 
     private Rigidbody2D rb;
@@ -35,6 +38,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 lastMovementInput;
     private Vector2 comboMovementDirection;
     private Vector2 grabAimDirection;
+    private Vector2 _wallNormal;
     private ContactFilter2D _groundFilter;
     private readonly Collider2D[] _groundHits = new Collider2D[8];
 
@@ -45,6 +49,9 @@ public class PlayerController : MonoBehaviour
     private bool isGrabbing;
     private bool _landResetDone;
 
+    private float _coyoteTimer;
+    private float _facing = 1f;
+    private float _grabLockTimer;
     private float moveInput;
     private float dashTimer;
     private float originalGravity;
@@ -69,6 +76,10 @@ public class PlayerController : MonoBehaviour
 
         int hitCount = Physics2D.OverlapCircle(_groundCheck.position, _groundCheckRadius, _groundFilter, _groundHits);
         isGrounded = hitCount > 0 && rb.velocity.y <= 0.05f;
+        if (isGrounded)
+            _coyoteTimer = _coyoteTime;
+        else
+            _coyoteTimer -= Time.deltaTime;
 
         if (isGrounded && hitCount > 0 && _groundHits[0] != null)
         {
@@ -78,16 +89,19 @@ public class PlayerController : MonoBehaviour
 
         if (isGrounded)
 {
-    if (!_landResetDone)
-    {
-        doubleJump.OnLand();
-        _landResetDone = true;
-    }
-}
-else
-{
-    _landResetDone = false;
-}
+        if (!_landResetDone)
+        {
+            doubleJump.OnLand();
+            _landResetDone = true;
+        }
+        }
+        else
+        {
+            _landResetDone = false;
+        }
+
+        if (_grabLockTimer > 0f)
+            _grabLockTimer -= Time.deltaTime;
 
         CaptureMoveDir();
         Move();
@@ -110,6 +124,8 @@ else
         if (isDashing || isGrabbing) return;
 
         float horizontal = Input.GetAxisRaw("Horizontal");
+        if (horizontal > 0.01f) SetFacing(1f);
+        else if (horizontal < -0.01f) SetFacing(-1f);
         float vertical = Input.GetAxisRaw("Vertical");
 
         Vector2 currentInput = new Vector2(horizontal, vertical);
@@ -133,7 +149,10 @@ else
         // Jump input
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (doubleJump.CanJump(isGrounded))
+            bool canUseCoyote = _coyoteTimer > 0f;
+            bool groundedForJump = isGrounded || canUseCoyote;
+
+            if (doubleJump.CanJump(groundedForJump))
             {
                 doubleJump.PerformJump(rb, _jumpForce, isGrounded);
 
@@ -151,7 +170,9 @@ else
     {
         if (Input.GetKeyDown(_dashKey))
         {
-            comboSystem.AddInput(ComboInput.Dash);
+            // If grabbing, HandleGrab will handle dash-launch
+            if (!isGrabbing)
+                comboSystem.AddInput(ComboInput.Dash);
         }
 
         if (isDashing)
@@ -169,23 +190,21 @@ else
     {
         if (Input.GetMouseButtonDown(0))
         {
+            // ✅ If we are currently dashing, convert hit into vertical dash
+            if (isDashing)
+            {
+                StartDash(Vector2.up, overrideDash: true);
+                comboSystem.Clear(); // optional: prevents other combos from firing weird
+                return;
+            }
+
             comboSystem.AddInput(ComboInput.Hit);
             Debug.Log("Hit!");
         }
-
-        //if (Input.GetKeyDown(KeyCode.Mouse0)) // or KeyCode.F
-        //{
-        //    hitPressed = true;
-        //    Debug.Log("Hit triggered");
-        //}
-        //else
-        //{
-        //    hitPressed = false; 
-        //}
     }
-    private void StartDash(Vector2 dir)
+    private void StartDash(Vector2 dir, bool overrideDash = false)
     {
-        if (isDashing) return;
+        if (isDashing && !overrideDash) return;
 
         if (dir == Vector2.zero)
             dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
@@ -217,56 +236,49 @@ else
 
     private void HandleGrab()
     {
+        // ✅ Prevent instantly re-grabbing after launching
+        if (_grabLockTimer > 0f)
+        {
+            StopGrab();
+            return;
+        }
+
+        grabAimDirection = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
+
         if (!Input.GetKey(_grabKey))
         {
             StopGrab();
             return;
         }
 
-        if (Input.GetKeyDown(_dashKey))
-        {
-            // If we are grabbing, dash becomes "launch"
-            if (isGrabbing)
-            {
-                Vector2 dire = grabAimDirection;
-
-                // fallback if player isn't holding a direction:
-                if (dire == Vector2.zero)
-                {
-                    // launch away from the wall based on facing
-                    dire = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-                }
-
-                StopGrab();                 // release from wall
-                Launch(dire);                // launch where player chose
-                comboSystem.Clear();        // optional: prevents other combos
-                return;
-            }
-
-            // Normal case: record dash input for other combos
-            comboSystem.AddInput(ComboInput.Dash);
-        }
-
         Vector2 dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
 
-        RaycastHit2D hit = Physics2D.Raycast(
-            transform.position,
-            dir,
-            _grabCheckDistance,
-            _grabLayer
-        );
-
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, _grabCheckDistance, _grabLayer);
         Debug.DrawRay(transform.position, dir * _grabCheckDistance, Color.red);
 
-        if (hit.collider != null)
-        {
-            StartGrab();
-        }
-        else
+        if (hit.collider == null)
         {
             StopGrab();
+            return;
         }
-        grabAimDirection = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
+
+        // We are touching wall, so we can grab
+        StartGrab();
+
+        // Shift while grabbing -> launch
+        if (Input.GetKeyDown(_dashKey) && isGrabbing)
+        {
+            Vector2 launchDir = grabAimDirection;
+
+            if (launchDir == Vector2.zero)
+                launchDir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+
+            _grabLockTimer = _grabLockDuration;
+            StopGrab();
+            Launch(launchDir);
+            comboSystem.Clear();
+            return;
+        }
     }
     private void StartGrab()
     {
@@ -283,6 +295,15 @@ else
 
         isGrabbing = false;
         rb.gravityScale = originalGravity;
+    }
+    private void SetFacing(float dir)
+    {
+        if (_facing == dir) return;
+        _facing = dir;
+
+        Vector3 s = transform.localScale;
+        s.x = Mathf.Abs(s.x) * _facing;
+        transform.localScale = s;
     }
 
     private void CheckCombos()
@@ -315,15 +336,15 @@ else
             return;
         }
 
-        // 3️ Grab → Dash (Player chooses direction)
-        if (comboSystem.Match(
-            ComboInput.Grab,
-            ComboInput.Dash))
-        {
-            Launch(lastMovementInput);
-            comboSystem.Clear();
-            return;
-        }
+        //// 3️ Grab → Dash (Player chooses direction)
+        //if (comboSystem.Match(
+        //    ComboInput.Grab,
+        //    ComboInput.Dash))
+        //{
+        //    Launch(lastMovementInput);
+        //    comboSystem.Clear();
+        //    return;
+        //}
 
         // 4️ Dash → Hit (Vertical straight dash up)
         if (comboSystem.Match(
