@@ -5,27 +5,56 @@ using UnityEngine.UI;
 
 public class Parralax : MonoBehaviour
 {
-    [SerializeField] private float scrollSpeed = 100f;
+    [Space(10)]
+    [SerializeField] private float horizontalSpeed = 100f;
+    [SerializeField] private float verticalSpeed = 0f;
+
     [SerializeField] private float parallaxMultiplier = 0.5f;
+
+    [Space(10)]
+    [SerializeField] private bool useHorizontal = true;
+    [SerializeField] private bool useVertical = false;
 
     private RectTransform rectTransform;
     private float width;
+    private float height;
 
     void Start()
     {
         rectTransform = GetComponent<RectTransform>();
+
         width = rectTransform.rect.width;
+        height = rectTransform.rect.height;
     }
 
     void Update()
     {
-        rectTransform.anchoredPosition +=
-            Vector2.left * scrollSpeed * parallaxMultiplier * Time.deltaTime;
+        Vector2 movement = Vector2.zero;
 
-        // Loop
-        if (rectTransform.anchoredPosition.x <= -width)
+        if (useHorizontal)
         {
-            rectTransform.anchoredPosition += new Vector2(width, 0f);
+            movement.x -= horizontalSpeed * parallaxMultiplier * Time.deltaTime;
         }
+
+        if (useVertical)
+        {
+            movement.y -= verticalSpeed * parallaxMultiplier * Time.deltaTime;
+        }
+
+        rectTransform.anchoredPosition += movement;
+
+        Vector2 pos = rectTransform.anchoredPosition;
+
+        if (useHorizontal && pos.x <= -width)
+        {
+            pos.x += width;
+        }
+
+        if (useVertical && pos.y <= -height)
+        {
+            pos.y += height;
+        }
+
+        rectTransform.anchoredPosition = pos;
     }
 }
