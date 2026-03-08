@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DebygHUD : MonoBehaviour
+public class DebugHUD : MonoBehaviour
 {
     public PlayerController player;
     public Rigidbody2D playerRB;

@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class MainMenuUI : MonoBehaviour
+public class SceneManage : MonoBehaviour
 {
-
-    public void GamePlay(string sceneName)
+    public void LoadScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
     }
