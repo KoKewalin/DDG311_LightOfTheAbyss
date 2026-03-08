@@ -4,30 +4,70 @@ using UnityEngine;
 
 public class DebygHUD : MonoBehaviour
 {
-    [Header("References")]
-    public PlayerController player;      // drag your Player here
+    public PlayerController player;
+    public Rigidbody2D playerRB;
 
-    [Header("Toggle")]
-    public KeyCode toggleKey = KeyCode.F3;
     public bool show = true;
+    public KeyCode toggleKey = KeyCode.F3;
 
-    private void Update()
+    void Update()
     {
         if (Input.GetKeyDown(toggleKey))
             show = !show;
     }
 
-    private void OnGUI()
+    void OnGUI()
     {
         if (!show || player == null) return;
 
-        float x = 15f, y = 15f, w = 480f, h = 22f;
+        float x = 20;
+        float y = 20;
+        float h = 22;
 
-        GUI.Box(new Rect(x - 10, y - 10, w + 20, 170), "DEBUG: Input Buffer");
+        GUI.Box(new Rect(x - 10, y - 10, 320, 220), "DEBUG MENU");
 
-        GUI.Label(new Rect(x, y, w, h), "Buffer: " + player.Debug_GetBufferString()); y += h;
-        GUI.Label(new Rect(x, y, w, h), "Last Input: " + player.Debug_GetLastInputString()); y += h;
-        GUI.Label(new Rect(x, y, w, h), "Buffer Time Left: " + player.Debug_GetBufferSecondsLeft().ToString("0.00") + "s"); y += h;
-        GUI.Label(new Rect(x, y, w, h), "Coyote Time Left: " + player.Debug_GetCoyoteSecondsLeft().ToString("0.00") + "s"); y += h;
+        GUI.Label(new Rect(x, y, 300, h), "PLAYER STATS");
+        y += h;
+
+        GUI.Label(new Rect(x, y, 300, h), "Position: " + player.transform.position);
+        y += h;
+
+        if (playerRB != null)
+        {
+            GUI.Label(new Rect(x, y, 300, h), "Speed: " + playerRB.velocity.magnitude.ToString("0.00"));
+            y += h;
+        }
+
+        string facing = player.transform.localScale.x > 0 ? "Right" : "Left";
+        GUI.Label(new Rect(x, y, 300, h), "Facing: " + facing);
+        y += h;
+
+        y += 10;
+
+        GUI.Label(new Rect(x, y, 300, h), "INPUT BUFFER");
+        y += h;
+
+        GUI.Label(new Rect(x, y, 300, h), "Buffer: " + player.Debug_GetBufferString());
+        y += h;
+
+        GUI.Label(new Rect(x, y, 300, h), "Last Input: " + player.Debug_GetLastInputString());
+        y += h;
+
+        float buffer = player.Debug_GetBufferSecondsLeft();
+
+        Color old = GUI.color;
+
+        if (buffer > 0)
+            GUI.color = Color.green;
+        else
+            GUI.color = Color.red;
+
+        GUI.Label(new Rect(x, y, 300, h), "Buffer Time Left: " + buffer.ToString("0.00"));
+
+        GUI.color = old;
+        y += h;
+
+        GUI.Label(new Rect(x, y, 300, h),
+            "Coyote Time Left: " + player.Debug_GetCoyoteSecondsLeft().ToString("0.00"));
     }
 }

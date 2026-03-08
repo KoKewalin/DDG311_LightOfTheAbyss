@@ -31,6 +31,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _launchForce = 18f;
     [SerializeField] private float _grabLockDuration = 0.15f;
 
+    [Header("DebugController")]
+    [SerializeField] private DebugController debugController;
+
 
     private Rigidbody2D rb;
     private IJumpAbility doubleJump;
@@ -153,12 +156,21 @@ public class PlayerController : MonoBehaviour
             bool canUseCoyote = _coyoteTimer > 0f;
             bool groundedForJump = isGrounded || canUseCoyote;
 
-            if (doubleJump.CanJump(groundedForJump))
-            {
-                doubleJump.PerformJump(rb, _jumpForce, isGrounded);
+            bool infiniteJumpOn = debugController != null && debugController.IsInfiniteJump();
 
-                // Only record Jump if we ACTUALLY jumped
+            if (infiniteJumpOn)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, _jumpForce);
+
                 comboSystem.AddInput(ComboInput.Jump);
+                _lastInput = ComboInput.Jump;
+            }
+            else if (doubleJump.CanJump(groundedForJump))
+            {
+                doubleJump.PerformJump(rb, _jumpForce, groundedForJump);
+
+                comboSystem.AddInput(ComboInput.Jump);
+                _lastInput = ComboInput.Jump;
             }
         }
     }
