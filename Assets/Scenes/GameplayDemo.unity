@@ -3407,6 +3407,7 @@ MonoBehaviour:
   fullHeartSprite: {fileID: 21300000, guid: ffc5f0f2e5208094faac725351ec9de1, type: 3}
   emptyHeartSprite: {fileID: 21300000, guid: 7ed61ee96d64dbc44a6b60ae660d165a, type: 3}
   damageLaunchForce: 10
+  GameOverUI: {fileID: 829107539}
 --- !u!114 &803597474
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3424,7 +3425,8 @@ MonoBehaviour:
   _coyoteTime: 0.12
   _dashKey: 304
   _dashForce: 25
-  _dashDuration: 0.25
+  _verticalDashForce: 15
+  _dashDuration: 0.2
   _grabLayer:
     serializedVersion: 2
     m_Bits: 72

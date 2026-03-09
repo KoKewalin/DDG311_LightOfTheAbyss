@@ -16,6 +16,7 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("Damage Launch")]
     [SerializeField] private float damageLaunchForce = 10f;
+    [SerializeField] private GameObject GameOverUI;
 
     private Rigidbody2D rb;
 
@@ -84,8 +85,8 @@ public class PlayerHealth : MonoBehaviour
     private void Die()
     {
         Debug.Log("Player died!");
-
-        // ใส่ระบบตายทีหลังได้
-        // เช่น ปิดการควบคุม / เปิด death UI / restart
+        Time.timeScale = 0f;
+        GameOverUI.SetActive(true);
+        Destroy(gameObject);
     }
 }

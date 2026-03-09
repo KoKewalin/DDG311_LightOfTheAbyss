@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     [Header("Dash")]
     [SerializeField] private KeyCode _dashKey = KeyCode.LeftShift;
     [SerializeField] private float _dashForce = 20f;
+    [SerializeField] private float _verticalDashForce = 25f;
     [SerializeField] private float _dashDuration = 0.2f;
 
     [Header("Grab")]
@@ -226,7 +227,10 @@ public class PlayerController : MonoBehaviour
         dashTimer = _dashDuration;
 
         rb.gravityScale = 0f;
-        rb.velocity = dir.normalized * _dashForce;
+
+        float force = dir.y != 0 ? _verticalDashForce : _dashForce;
+
+        rb.velocity = dir.normalized * force;
     }
 
     private void NormalDash()
@@ -364,7 +368,7 @@ public class PlayerController : MonoBehaviour
             ComboInput.Dash,
             ComboInput.Hit))
         {
-            StartDash(Vector2.up);
+            StartDash(Vector2.up, true);
             comboSystem.Clear();
             return;
         }
