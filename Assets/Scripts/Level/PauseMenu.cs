@@ -6,7 +6,6 @@ public class PauseMenu : MonoBehaviour
 {
     [Header("Panels")]
     [SerializeField] private GameObject pausePanel;
-    [SerializeField] private GameObject debugFeaturePanel;
 
     [Header("Keys")]
     [SerializeField] private KeyCode pauseKey = KeyCode.Escape;
@@ -21,9 +20,6 @@ public class PauseMenu : MonoBehaviour
 
         if (pausePanel != null)
             pausePanel.SetActive(false);
-
-        if (debugFeaturePanel != null)
-            debugFeaturePanel.SetActive(false);
     }
 
     private void Update()
@@ -38,10 +34,6 @@ public class PauseMenu : MonoBehaviour
         }
 
         // เปิด / ปิด debug feature panel ได้เฉพาะตอน pause
-        if (isPaused && Input.GetKeyDown(debugKey))
-        {
-            ToggleDebugFeaturePanel();
-        }
     }
 
     public void PauseGame()
@@ -51,9 +43,6 @@ public class PauseMenu : MonoBehaviour
 
         if (pausePanel != null)
             pausePanel.SetActive(true);
-
-        if (debugFeaturePanel != null)
-            debugFeaturePanel.SetActive(false);
     }
 
     public void ResumeGame()
@@ -63,16 +52,6 @@ public class PauseMenu : MonoBehaviour
 
         if (pausePanel != null)
             pausePanel.SetActive(false);
-
-        if (debugFeaturePanel != null)
-            debugFeaturePanel.SetActive(false);
-    }
-
-    public void ToggleDebugFeaturePanel()
-    {
-        if (debugFeaturePanel == null) return;
-
-        debugFeaturePanel.SetActive(!debugFeaturePanel.activeSelf);
     }
 
     public bool IsPaused()

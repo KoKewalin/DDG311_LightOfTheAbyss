@@ -10,12 +10,6 @@ public class DebugHUD : MonoBehaviour
     public bool show = true;
     public KeyCode toggleKey = KeyCode.F3;
 
-    void Update()
-    {
-        if (Input.GetKeyDown(toggleKey))
-            show = !show;
-    }
-
     void OnGUI()
     {
         if (!show || player == null) return;
@@ -69,5 +63,14 @@ public class DebugHUD : MonoBehaviour
 
         GUI.Label(new Rect(x, y, 300, h),
             "Coyote Time Left: " + player.Debug_GetCoyoteSecondsLeft().ToString("0.00"));
+    }
+    public void SetShow(bool value)
+    {
+        show = value;
+    }
+
+    public bool IsShowing()
+    {
+        return show;
     }
 }
