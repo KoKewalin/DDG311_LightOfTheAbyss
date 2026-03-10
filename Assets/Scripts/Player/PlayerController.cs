@@ -144,8 +144,8 @@ public class PlayerController : MonoBehaviour
 
     if (!comboSystem.Contains(ComboInput.Movement))
     {
-        comboSystem.AddInput(ComboInput.Movement);
-    }
+                RegisterInput(ComboInput.Movement);
+            }
 }
 
         // Only horizontal affects actual movement
@@ -162,16 +162,12 @@ public class PlayerController : MonoBehaviour
             if (infiniteJumpOn)
             {
                 rb.velocity = new Vector2(rb.velocity.x, _jumpForce);
-
-                comboSystem.AddInput(ComboInput.Jump);
-                _lastInput = ComboInput.Jump;
+                RegisterInput(ComboInput.Jump);
             }
             else if (doubleJump.CanJump(groundedForJump))
             {
                 doubleJump.PerformJump(rb, _jumpForce, groundedForJump);
-
-                comboSystem.AddInput(ComboInput.Jump);
-                _lastInput = ComboInput.Jump;
+                RegisterInput(ComboInput.Jump);
             }
         }
     }
@@ -186,7 +182,7 @@ public class PlayerController : MonoBehaviour
         {
             // If grabbing, HandleGrab will handle dash-launch
             if (!isGrabbing)
-                comboSystem.AddInput(ComboInput.Dash);
+                RegisterInput(ComboInput.Dash);
         }
 
         if (isDashing)
@@ -207,12 +203,13 @@ public class PlayerController : MonoBehaviour
             // ✅ If we are currently dashing, convert hit into vertical dash
             if (isDashing)
             {
+                _lastInput = ComboInput.Hit;
                 StartDash(Vector2.up, overrideDash: true);
                 comboSystem.Clear(); // optional: prevents other combos from firing weird
                 return;
             }
 
-            comboSystem.AddInput(ComboInput.Hit);
+            RegisterInput(ComboInput.Hit);
             Debug.Log("Hit!");
         }
     }
@@ -304,6 +301,8 @@ public class PlayerController : MonoBehaviour
         isGrabbing = true;
         rb.velocity = Vector2.zero;
         rb.gravityScale = 0f;
+
+        RegisterInput(ComboInput.Grab);
     }
 
     private void StopGrab()
@@ -353,17 +352,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        //// 3️ Grab → Dash (Player chooses direction)
-        //if (comboSystem.Match(
-        //    ComboInput.Grab,
-        //    ComboInput.Dash))
-        //{
-        //    Launch(lastMovementInput);
-        //    comboSystem.Clear();
-        //    return;
-        //}
-
-        // 4️ Dash → Hit (Vertical straight dash up)
         if (comboSystem.Match(
             ComboInput.Dash,
             ComboInput.Hit))
@@ -373,19 +361,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        //// 5️ Jump → Jump (Double Jump)
-        //if (comboSystem.Match(
-        //    ComboInput.Jump,
-        //    ComboInput.Jump))
-        //{
-        //    if (!isGrounded)
-        //    {
-        //        rb.velocity = new Vector2(rb.velocity.x, _jumpForce);
-        //    }
-
-        //    comboSystem.Clear();
-        //    return;
-        //}
         if (comboSystem.Match(ComboInput.Dash))
         {
             NormalDash();
@@ -445,5 +420,9 @@ public class PlayerController : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(_groundCheck.position, _groundCheckRadius);
     }
-
+    private void RegisterInput(ComboInput input)
+    {
+        comboSystem.AddInput(input);
+        _lastInput = input;
+    }
 }

@@ -5234,8 +5234,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pausePanel: {fileID: 1006277912}
-  debugFeaturePanel: {fileID: 270463954}
-  pauseKey: 108
+  pauseKey: 27
   debugKey: 285
 --- !u!1 &1361671245
 GameObject:
