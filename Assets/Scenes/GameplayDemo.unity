@@ -3442,6 +3442,7 @@ MonoBehaviour:
   _launchForce: 25
   _grabLockDuration: 0.15
   debugController: {fileID: 370544834}
+  animator: {fileID: 803597478}
 --- !u!50 &803597475
 Rigidbody2D:
   serializedVersion: 4
@@ -3576,7 +3577,7 @@ Animator:
   m_GameObject: {fileID: 803597471}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 9e6b77e54161427469652f17f8672cc7, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

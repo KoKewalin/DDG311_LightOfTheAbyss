@@ -24,7 +24,7 @@ public class PauseMenu : MonoBehaviour
 
     private void Update()
     {
-        // �Դ / �Դ pause menu
+        // �Դ / �Դ pause menu
         if (Input.GetKeyDown(pauseKey))
         {
             if (isPaused)
@@ -33,7 +33,7 @@ public class PauseMenu : MonoBehaviour
                 PauseGame();
         }
 
-        // �Դ / �Դ debug feature panel ��੾�е͹ pause
+        // �Դ / �Դ debug feature panel ��੾�е͹ pause
     }
 
     public void PauseGame()

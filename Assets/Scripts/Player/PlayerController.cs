@@ -35,6 +35,9 @@ public class PlayerController : MonoBehaviour
     [Header("DebugController")]
     [SerializeField] private DebugController debugController;
 
+    [Header("Animation")]
+    public Animator animator;
+
 
     private Rigidbody2D rb;
     private IJumpAbility doubleJump;
@@ -82,9 +85,15 @@ public class PlayerController : MonoBehaviour
         int hitCount = Physics2D.OverlapCircle(_groundCheck.position, _groundCheckRadius, _groundFilter, _groundHits);
         isGrounded = hitCount > 0 && rb.velocity.y <= 0.05f;
         if (isGrounded)
+        {
             _coyoteTimer = _coyoteTime;
+            animator.SetBool("IsJumping", false);
+        }
         else
+        {
             _coyoteTimer -= Time.deltaTime;
+            animator.SetBool("IsJumping", true);
+        }
 
         if (isGrounded && hitCount > 0 && _groundHits[0] != null)
         {
@@ -154,6 +163,8 @@ public class PlayerController : MonoBehaviour
         // Jump input
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            animator.SetBool("IsJumping", true);
+
             bool canUseCoyote = _coyoteTimer > 0f;
             bool groundedForJump = isGrounded || canUseCoyote;
 
@@ -170,6 +181,7 @@ public class PlayerController : MonoBehaviour
                 RegisterInput(ComboInput.Jump);
             }
         }
+        animator.SetFloat("Speed", Mathf.Abs(horizontal));
     }
     private void Jump()
     {
@@ -187,10 +199,12 @@ public class PlayerController : MonoBehaviour
 
         if (isDashing)
         {
+            animator.SetBool("IsDash", true);
             dashTimer -= Time.deltaTime;
 
             if (dashTimer <= 0)
             {
+                animator.SetBool("IsDash", false);
                 isDashing = false;
                 rb.gravityScale = originalGravity;
             }
@@ -200,6 +214,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            animator.SetBool("IsHit", true);
             // ✅ If we are currently dashing, convert hit into vertical dash
             if (isDashing)
             {
@@ -211,6 +226,7 @@ public class PlayerController : MonoBehaviour
 
             RegisterInput(ComboInput.Hit);
             Debug.Log("Hit!");
+            animator.SetBool("IsHit", false);
         }
     }
     private void StartDash(Vector2 dir, bool overrideDash = false)
@@ -424,5 +440,10 @@ public class PlayerController : MonoBehaviour
     {
         comboSystem.AddInput(input);
         _lastInput = input;
+    }
+
+    public void OnLanding()
+    {
+        animator.SetBool("IsJumping", false);
     }
 }
