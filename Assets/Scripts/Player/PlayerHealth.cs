@@ -19,12 +19,16 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private float damageLaunchForce = 10f;
     [SerializeField] private GameObject GameOverUi;
 
+    [Header("Ref")]
+    [SerializeField] private LowHealthWarning lowHealthWarning;
+
     private Rigidbody2D rb;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         CurrentHP = maxHP;
+        UpdateLowHealthWarning();
         UpdateHeartUI();
     }
 
@@ -33,6 +37,7 @@ public class PlayerHealth : MonoBehaviour
         if (CurrentHP <= 0) return;
 
         CurrentHP -= amount;
+        UpdateLowHealthWarning();
         CurrentHP = Mathf.Max(CurrentHP, 0);
 
         UpdateHeartUI();
@@ -63,6 +68,7 @@ public class PlayerHealth : MonoBehaviour
         if (CurrentHP <= 0) return;
 
         CurrentHP += amount;
+        UpdateLowHealthWarning();
         CurrentHP = Mathf.Min(CurrentHP, maxHP);
 
         UpdateHeartUI();
@@ -71,6 +77,7 @@ public class PlayerHealth : MonoBehaviour
     public void ResetHealth()
     {
         CurrentHP = maxHP;
+        UpdateLowHealthWarning();
         UpdateHeartUI();
     }
 
@@ -87,6 +94,12 @@ public class PlayerHealth : MonoBehaviour
             else
                 hearts[i].sprite = emptyHeartSprite;
         }
+    }
+    private void UpdateLowHealthWarning()
+    {
+        if (lowHealthWarning == null) return;
+
+        lowHealthWarning.SetWarning(CurrentHP == 1);
     }
 
     private void Die()
