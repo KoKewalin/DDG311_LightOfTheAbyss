@@ -8,6 +8,7 @@ public class PlayerHealth : MonoBehaviour
     [Header("Health")]
     [SerializeField] private int maxHP = 2;
     public int CurrentHP { get; private set; }
+    public int MaxHP => maxHP;
 
     [Header("Heart UI")]
     [SerializeField] private Image[] hearts;
@@ -16,7 +17,7 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("Damage Launch")]
     [SerializeField] private float damageLaunchForce = 10f;
-    [SerializeField] private GameObject GameOverUI;
+    [SerializeField] private GameObject GameOverUi;
 
     private Rigidbody2D rb;
 
@@ -51,7 +52,7 @@ public class PlayerHealth : MonoBehaviour
 
         Debug.Log("Player HP: " + CurrentHP);
 
-        if (CurrentHP <= 0)
+        if (CurrentHP == 0)
         {
             Die();
         }
@@ -64,6 +65,12 @@ public class PlayerHealth : MonoBehaviour
         CurrentHP += amount;
         CurrentHP = Mathf.Min(CurrentHP, maxHP);
 
+        UpdateHeartUI();
+    }
+
+    public void ResetHealth()
+    {
+        CurrentHP = maxHP;
         UpdateHeartUI();
     }
 
@@ -86,7 +93,8 @@ public class PlayerHealth : MonoBehaviour
     {
         Debug.Log("Player died!");
         Time.timeScale = 0f;
-        GameOverUI.SetActive(true);
-        Destroy(gameObject);
+
+        if (GameOverUi != null)
+            GameOverUi.SetActive(true);
     }
 }
