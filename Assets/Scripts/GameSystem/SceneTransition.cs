@@ -28,6 +28,8 @@ public class SceneTransition : MonoBehaviour
             fadeImage.color = new Color(0, 0, 0, t);
             yield return null;
         }
+
+        fadeImage.color = new Color(0, 0, 0, 0);
     }
 
     IEnumerator FadeOut(string sceneName)

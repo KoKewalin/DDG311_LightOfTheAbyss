@@ -164,6 +164,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             animator.SetBool("IsJumping", true);
+            AudioManager.Instance.PlaySFX("Jump");
 
             bool canUseCoyote = _coyoteTimer > 0f;
             bool groundedForJump = isGrounded || canUseCoyote;
@@ -194,7 +195,10 @@ public class PlayerController : MonoBehaviour
         {
             // If grabbing, HandleGrab will handle dash-launch
             if (!isGrabbing)
+            {
                 RegisterInput(ComboInput.Dash);
+                AudioManager.Instance.PlaySFX("Dash");
+            }
         }
 
         if (isDashing)
@@ -373,6 +377,7 @@ public class PlayerController : MonoBehaviour
             ComboInput.Hit))
         {
             StartDash(Vector2.up, true);
+            AudioManager.Instance.PlaySFX("AirJump");
             comboSystem.Clear();
             return;
         }

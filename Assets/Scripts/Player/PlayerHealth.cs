@@ -35,6 +35,7 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int amount = 1)
     {
         if (CurrentHP <= 0) return;
+        AudioManager.Instance.PlaySFX("Hurt");
 
         CurrentHP -= amount;
         UpdateLowHealthWarning();
@@ -105,6 +106,7 @@ public class PlayerHealth : MonoBehaviour
     private void Die()
     {
         Debug.Log("Player died!");
+        AudioManager.Instance.PlaySFX("GameOver");
         Time.timeScale = 0f;
 
         if (GameOverUi != null)

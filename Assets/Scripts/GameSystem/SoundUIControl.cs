@@ -5,14 +5,34 @@ using UnityEngine.UI;
 
 public class SoundUIControl : MonoBehaviour
 {
-    public Slider _musicSlider, _sfxSlider;
+    public Slider _musicSlider;
+    public Slider _sfxSlider;
 
-    public void MusicVolume()
+    private void Start()
     {
-        AudioManager.Instance.MusicVolume(_musicSlider.value);
+        if (AudioManager.Instance == null)
+        {
+            Debug.LogWarning("AudioManager not found in scene.");
+            return;
+        }
+
+        _musicSlider.value = AudioManager.Instance.GetMusicVolume();
+        _sfxSlider.value = AudioManager.Instance.GetSFXVolume();
+
+        _musicSlider.onValueChanged.RemoveAllListeners();
+        _sfxSlider.onValueChanged.RemoveAllListeners();
+
+        _musicSlider.onValueChanged.AddListener(SetMusicVolume);
+        _sfxSlider.onValueChanged.AddListener(SetSFXVolume);
     }
-    public void SFXVolume()
+
+    public void SetMusicVolume(float value)
     {
-        AudioManager.Instance.SFXVolume(_sfxSlider.value);
+        AudioManager.Instance.MusicVolume(value);
+    }
+
+    public void SetSFXVolume(float value)
+    {
+        AudioManager.Instance.SFXVolume(value);
     }
 }
